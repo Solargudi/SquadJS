@@ -46,6 +46,15 @@ class SquadLayers {
     const layer = this.layers.filter((layer) => layer.layer === layerName);
     return layer.length === 1 ? layer[0] : null;
   }
+  
+  getRandLayerByMapName(mapName) {
+	let randomIndex;
+	const mapLayers = this.layers.filter((layer) => layer.map === mapName);
+	//console.log("inside ",mapLayers);
+	randomIndex = Math.floor(Math.random() * mapLayers.length);
+	//console.log("len ",mapLayers.length, " inx ", randomIndex);
+	return mapLayers[randomIndex]
+  }
 
   getLayerByNumber(number) {
     const layer = this.layers.filter((layer) => layer.layerNumber === number);

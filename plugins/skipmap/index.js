@@ -40,7 +40,7 @@ export default {
 
     minimumVotes: {
       required: false,
-      description: 'The minimum percentage of people required to vote for the vote to go through.',
+      description: 'The minimum required amount of votes for the vote to go through',
       default: 20
     },
 
@@ -65,7 +65,7 @@ export default {
       if (!info.message.startsWith(options.command)) return;
 
       if (voteActive) {
-        await server.rcon.warn(info.steamID, 'Skipmap vote already in progress.');
+        await server.rcon.warn(info.steamID, 'Голосование уже запущено.');
         return;
       }
 
@@ -81,7 +81,7 @@ export default {
 
         await server.rcon.warn(
           info.steamID,
-          `Not enough time has passed since the start of the match. Please try again in ${
+          `Недостаточно времени прошло с начала матча. Повторите команду позже. ${
             minutes ? `${minutes}min` : ''
           } ${seconds ? `${seconds - minutes * 60}s` : ''}`
         );
@@ -93,20 +93,20 @@ export default {
         server.layerHistory.length > 0 &&
         server.layerHistory[0].time < Date.now() - options.endTimer
       ) {
-        await server.rcon.warn(info.steamID, 'Match has progressed too far.');
+        await server.rcon.warn(info.steamID, 'Невозможно запустить голосование, так как матч идёт продолжительное время.');
         return;
       }
 
       // check if enough time has passed since the last vote
       if (timeLastVote && timeLastVote > Date.now() - options.pastVoteTimer) {
-        await server.rcon.warn(info.steamID, 'Not enough time has passed since the last vote.');
+        await server.rcon.warn(info.steamID, 'Прошло недостаточно времени с момента прошлого голосования.');
         return;
       }
 
-      await server.rcon.warn(info.steamID, 'You have started a skip map vote.');
+      await server.rcon.warn(info.steamID, 'Вы запустили голосование за пропуск карты.');
       await server.rcon.warn(info.steamID, COPYRIGHT_MESSAGE);
       await server.rcon.broadcast(
-        'A vote to skip the current map has been started. Please vote in favour of skipping the map with + or against with -.'
+        'Начато голосование за пропуск карты. Напишите в чат "+" за смену карты, и "-", если вы против.'
       );
 
       // Actual vote
@@ -115,15 +115,14 @@ export default {
       voteNeg = 0;
       playerVotes = {};
       playerVotes[info.steamID] = '+';
-      timeLastVote = new Date(); // As a vote happened, stop any further votes from happening until enough time has passed
 
       // Set reminders
       intervalReminderBroadcasts = setInterval(async () => {
         await server.rcon.broadcast(
-          'A vote to skip the current map is in progress. Please vote in favour of skipping the map with + or against with -.'
+          'Начато голосование за пропуск карты. Напишите в чат "+" за смену карты, и "-", если вы против.'
         );
         await server.rcon.broadcast(
-          `Currently ${votePos} people voted in favour and ${voteNeg} against skipping the current map.`
+          `На данный момент голосов за:${votePos}, против:${voteNeg}.`
         );
       }, options.reminderInterval);
 
@@ -133,20 +132,22 @@ export default {
         voteActive = false;
         clearInterval(intervalReminderBroadcasts);
         // Check if enough people voted
-        if (voteNeg + votePos < options.minimumVotes) {
+        if (voteNeg + votePos < options.minVoteCount) {
           server.rcon.broadcast('Not enough people voted for the vote to go through.');
           return;
         }
         if (votePos > voteNeg) {
           server.rcon.broadcast(
-            `The vote to skip the current map has passed. ${votePos} voted in favour, ${voteNeg} against.`
+            `Начато голосование за пропуск карты. За - ${votePos}, против - ${voteNeg}.`
           );
           server.rcon.execute('AdminEndMatch');
         } else {
           server.rcon.broadcast(
-            `Not enough people voted in favour of skipping the match. ${votePos} voted in favour, ${voteNeg} against.`
+            `Недостаточное количество человек проголосовало за пропуск карты.За - ${votePos}, против - ${voteNeg}.`
           );
         }
+        // As a vote happened, stop any further votes from happening until enough time has passed
+        timeLastVote = new Date();
       }, options.voteDuration);
     });
 
@@ -172,20 +173,20 @@ export default {
       // Record player vote
       if (info.message === '+') {
         votePos++;
-        await server.rcon.warn(info.steamID, 'Your vote in favour has been saved.');
+        await server.rcon.warn(info.steamID, 'Вы проголосовали за');
       } else if (info.message === '-') {
         voteNeg++;
-        await server.rcon.warn(info.steamID, 'Your vote against has been saved.');
+        await server.rcon.warn(info.steamID, 'Вы проголосовали против');
       }
 
       await server.rcon.warn(info.steamID, COPYRIGHT_MESSAGE);
 
       playerVotes[info.steamID] = info.message;
 
-      // If 50% of people voted in favour, instantly win the vote
-      if (votePos > server.players.length / 2) {
+      // If 50 people voted in favour, instantly win the vote
+      if (votePos >= 50) {
         await server.rcon.broadcast(
-          `The vote to skip the current map has passed. ${votePos} voted in favour, ${voteNeg} against.`
+          `Начато голосование за пропуск карты. За - ${votePos}, против - ${voteNeg}.`
         );
         await server.rcon.execute('AdminEndMatch');
         timeLastVote = new Date();

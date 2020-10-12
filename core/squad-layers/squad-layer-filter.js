@@ -48,14 +48,23 @@ export default class SquadLayerFilter extends SquadLayersClass {
     return new SquadLayerFilter(layers, activeLayerFilter);
   }
 
+  static buildRandFromMapList(mapNames, activeLayerFilter) {
+    const layers = [];
+    for (const mapName of mapNames) {
+		//console.log("in ",mapName);
+      const layer = SquadLayers.getRandLayerByMapName(mapName);
+	  //console.log("out ",layer);
+      if (layer) layers.push(layer);
+    }
+    return new SquadLayerFilter(layers, activeLayerFilter);
+  }
+
   static buildFromFile(path, activeLayerFilter, delimiter = '\n') {
     const lines = fs.readFileSync(path, 'utf8').split(delimiter);
     const layers = [];
 
-    const validLayerNames = SquadLayers.getLayerNames();
-
     for (const line of lines) {
-      if (validLayerNames.contains(line)) layers.push(SquadLayers.getLayerByLayerName(line));
+      layers.push(SquadLayers.getLayerByLayerName(line));
     }
     return new SquadLayerFilter(layers, activeLayerFilter);
   }

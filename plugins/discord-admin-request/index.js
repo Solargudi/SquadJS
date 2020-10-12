@@ -74,7 +74,7 @@ export default {
       if (trimmedMessage.length === 0) {
         await server.rcon.warn(
           info.steamID,
-          `Please specify what you would like help with when requesting an admin.`
+          `Пожалуйста, укажите свой комменатрий, чтобы Администратор увидел ваш запрос.`
         );
         return;
       }

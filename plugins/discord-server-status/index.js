@@ -51,7 +51,7 @@ export default {
 
       await serverStatus.react('🔄');
     });
-
+	
     options.discordClient.on('messageReactionAdd', async (reaction) => {
       // confirm it's a status message
       if (
@@ -70,7 +70,7 @@ export default {
       // update the message
       await reaction.message.edit(makeEmbed(server, options));
     });
-
+	
     server.on(A2S_INFO_UPDATED, () => {
       if (!options.disableStatus)
         options.discordClient.user.setActivity(
@@ -96,16 +96,16 @@ function makeEmbed(server, options) {
 
   const fields = [
     {
-      name: 'Players',
+      name: 'Игроки',
       value: `\`\`\`${players}\`\`\``
     },
     {
-      name: 'Current Layer',
+      name: 'Текущая карта',
       value: `\`\`\`${server.currentLayer}\`\`\``,
       inline: true
     },
     {
-      name: 'Next Layer',
+      name: 'Следующая карта',
       value: `\`\`\`${server.nextLayer || 'Unknown'}\`\`\``,
       inline: true
     }
@@ -113,7 +113,7 @@ function makeEmbed(server, options) {
 
   if (options.connectLink)
     fields.push({
-      name: 'Join Server',
+      name: 'Присоединиться на сервер',
       value: `steam://connect/${server.host}:${server.queryPort}`
     });
 

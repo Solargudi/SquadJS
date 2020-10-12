@@ -50,26 +50,26 @@ export default {
 
       const fields = [
         {
-          name: "Attacker's Name",
+          name: "Имя атакующего",
           value: info.attacker.name,
           inline: true
         },
         {
-          name: "Attacker's SteamID",
+          name: "ID атакующего",
           value: `[${info.attacker.steamID}](https://steamcommunity.com/profiles/${info.attacker.steamID})`,
           inline: true
         },
         {
-          name: 'Weapon',
+          name: 'Оружие',
           value: info.weapon
         },
         {
-          name: "Victim's Name",
+          name: "Имя пострадавшего",
           value: info.victim.name,
           inline: true
         },
         {
-          name: "Victim's SteamID",
+          name: "ID пострадавшего",
           value: `[${info.victim.steamID}](https://steamcommunity.com/profiles/${info.victim.steamID})`,
           inline: true
         }

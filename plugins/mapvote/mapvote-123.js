@@ -45,7 +45,7 @@ export default {
         if (!mapvote) return;
         try {
           const layerName = await mapvote.makeVoteByNumber(info.steamID, parseInt(voteMatch[1]));
-          await server.rcon.warn(info.steamID, `You voted for ${layerName}.`);
+          await server.rcon.warn(info.steamID, `Вы проголосовали за ${layerName}.`);
         } catch (err) {
           await server.rcon.warn(info.steamID, err.message);
         }
@@ -55,27 +55,35 @@ export default {
       const commandMatch = info.message.match(/^!mapvote ?(.*)/);
       if (commandMatch) {
         if (commandMatch[1].startsWith('start')) {
-          if (info.chat !== 'ChatAdmin') return;
+          
 
           if (mapvote) {
-            await server.rcon.warn(info.steamID, 'A mapvote has already begun.');
+            await server.rcon.warn(info.steamID, 'Голосование уже началось.');
           } else {
+			 const allMapsList = ['Al Basrah', 'Belaya', 'Chora', 'Fool\'s Road', 'Gorodok', 'Kamdesh', 'Kohat', 'Kokan', 'Lashkar Valley', 'Logar Valley', 'Mestia', 'Mutaha', 'Narva', 'Skorpo', 'Sumari', 'Tallil Outskirts', 'Yehorivka', 'Fallujah'];//, 'CAF Belaya', 'CAF Chora', 'CAF Fool\'s Road', 'CAF Gorodok', 'CAF Kamdesh', 'CAF Kohat', 'CAF Lashkar', 'CAF Manic-5', 'CAF Mestia', 'CAF Mutaha', 'CAF Nanisivik', 'CAF Narva', 'CAF Skorpo', 'CAF Tallil Outskirts', 'CAF Yehorivka'];
+			  let randomIndex;
+			  var chosenMaps = [];
+			  for (let i = 0; i < 5; i++){
+				randomIndex = Math.floor(Math.random() * allMapsList.length);
+				chosenMaps.push(allMapsList[randomIndex]);
+				//console.log(allMapsList[randomIndex]);
+			  }
             mapvote = new MapVote(
               server,
-              SquadLayerFilter.buildFromDidYouMeanList(
-                commandMatch[1].replace('start ', '').split(', ')
+              SquadLayerFilter.buildRandFromMapList(
+				chosenMaps
               ),
               { minVoteCount: options.minVoteCount }
             );
 
             mapvote.on('NEW_WINNER', async (results) => {
               await server.rcon.broadcast(
-                `New Map Vote Winner: ${results[0].layer.layer}. Participate in the map vote by typing "!mapvote help" in chat.`
+                `Победитель голосования: ${results[0].layer.layer}.`
               );
             });
 
             await server.rcon.broadcast(
-              `A new map vote has started. Participate in the map vote by typing "!mapvote help" in chat. Map options to follow...`
+              `Запущено голосование за выбор карты.`
             );
             await server.rcon.broadcast(
               mapvote.squadLayerFilter
@@ -88,7 +96,7 @@ export default {
         }
 
         if (!mapvote) {
-          await server.rcon.warn(info.steamID, 'A map vote has not begun.');
+          await server.rcon.warn(info.steamID, 'Голосование ещё не началось. Для его запуска введите !mapvote start');
           return;
         }
 
@@ -101,12 +109,12 @@ export default {
 
           mapvote.on('NEW_WINNER', async (results) => {
             await server.rcon.broadcast(
-              `New Map Vote Winner: ${results[0].layer}. Participate in the map vote by typing "!mapvote help" in chat.`
+              `Победитель голосвания: ${results[0].layer}. Чтобы узнать подробности голосования, введите "!mapvote help" в чат.`
             );
           });
 
           await server.rcon.broadcast(
-            `A new map vote has started. Participate in the map vote by typing "!mapvote help" in chat. Map options to follow...`
+            `Голосование запущено. Чтобы узнать подробности голосования, введите "!mapvote help" в чат.`
           );
           await server.rcon.broadcast(
             mapvote.squadLayerFilter
@@ -123,9 +131,9 @@ export default {
           const results = mapvote.getResults();
 
           if (results.length === 0)
-            await server.rcon.broadcast(`No layer gained enough votes to win.`);
+            await server.rcon.broadcast(`Недостаточно голосов для победы в голосовании.`);
           else
-            await server.rcon.broadcast(`${mapvote.getResults()[0].layer.layer} won the mapvote!`);
+            await server.rcon.broadcast(`${mapvote.getResults()[0].layer.layer} победила в голосовании!`);
 
           mapvote = null;
           return;
@@ -146,7 +154,7 @@ export default {
           if (options.minVoteCount !== null)
             await server.rcon.warn(
               info.steamID,
-              `${options.minVoteCount} votes need to be made for a winner to be selected.`
+              `Требуется ${options.minVoteCount} голосов, чтобы карта победила в голосовании.`
             );
 
           await server.rcon.warn(
@@ -159,7 +167,7 @@ export default {
           const results = mapvote.getResults();
 
           if (results.length === 0) {
-            await server.rcon.warn(info.steamID, 'No one has voted yet.');
+            await server.rcon.warn(info.steamID, 'Никто еще не проголосовал.');
           } else {
             await server.rcon.warn(info.steamID, 'The current vote counts are as follows:');
             for (const result of results) {
